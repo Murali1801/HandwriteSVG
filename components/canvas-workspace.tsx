@@ -42,6 +42,7 @@ import {
   Grid3X3,
   MousePointer,
   Loader2,
+  Menu,
 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Textarea } from "@/components/ui/textarea"
@@ -72,6 +73,7 @@ export function CanvasWorkspace({ project, onBack }: CanvasWorkspaceProps) {
   const [selectedElements, setSelectedElements] = useState<any[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const tools = [
     { id: "select", icon: MousePointer, label: "Select" },
@@ -96,9 +98,10 @@ export function CanvasWorkspace({ project, onBack }: CanvasWorkspaceProps) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    // Set canvas size
-    canvas.width = 800
-    canvas.height = 600
+    // Set canvas size based on screen size
+    const isMobile = window.innerWidth < 768
+    canvas.width = isMobile ? window.innerWidth - 32 : 800
+    canvas.height = isMobile ? window.innerHeight - 200 : 600
 
     // Set default styles
     ctx.lineCap = "round"
@@ -111,6 +114,33 @@ export function CanvasWorkspace({ project, onBack }: CanvasWorkspaceProps) {
       drawGrid(ctx, canvas.width, canvas.height)
     }
   }, [strokeColor, strokeWidth, showGrid])
+
+  // Add touch event handlers
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    const mouseEvent = new MouseEvent('mousedown', {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    })
+    canvasRef.current?.dispatchEvent(mouseEvent)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    const mouseEvent = new MouseEvent('mousemove', {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    })
+    canvasRef.current?.dispatchEvent(mouseEvent)
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault()
+    const mouseEvent = new MouseEvent('mouseup', {})
+    canvasRef.current?.dispatchEvent(mouseEvent)
+  }
 
   const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const gridSize = 20
@@ -396,347 +426,202 @@ export function CanvasWorkspace({ project, onBack }: CanvasWorkspaceProps) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" onClick={onBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <div>
-              <h1 className="font-semibold">{project.name}</h1>
-              <p className="text-sm text-gray-500">Last saved 2 minutes ago</p>
-            </div>
-          </div>
+      <header className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Save className="h-4 w-4 mr-2" />
-              Save
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Export Options</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={exportSVG}>Export as SVG</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportPNG}>Export as PNG</DropdownMenuItem>
-                <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Canvas
+            </span>
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <ThemeToggle />
+            <Button variant="ghost" size="sm" className="sm:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div className={`${isMobileMenuOpen ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row absolute sm:relative top-16 sm:top-0 right-4 sm:right-0 bg-white dark:bg-gray-900 sm:bg-transparent p-4 sm:p-0 rounded-lg shadow-lg sm:shadow-none border sm:border-0`}>
+              <Button variant="ghost" size="sm" onClick={clearCanvas}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+              <Button variant="ghost" size="sm" onClick={exportPNG}>
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 flex">
-        {/* Left Sidebar - Tools */}
-        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 space-y-6">
-          {/* Tools */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Tools</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {tools.map((toolItem) => (
-                <Button
-                  key={toolItem.id}
-                  variant={tool === toolItem.id ? "default" : "ghost"}
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => setTool(toolItem.id as any)}
-                >
-                  <toolItem.icon className="h-4 w-4 mr-2" />
-                  {toolItem.label}
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Brush Settings */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Brush Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-xs">Stroke Width</Label>
-                <Slider value={strokeWidth} onValueChange={setStrokeWidth} max={20} min={1} step={1} className="mt-2" />
-                <div className="text-xs text-gray-500 mt-1">{strokeWidth[0]}px</div>
-              </div>
-              <div>
-                <Label className="text-xs">Color</Label>
-                <div className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="color"
-                    value={strokeColor}
-                    onChange={(e) => setStrokeColor(e.target.value)}
-                    className="w-8 h-8 rounded border"
-                  />
-                  <Input value={strokeColor} onChange={(e) => setStrokeColor(e.target.value)} className="text-xs" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Canvas Settings */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Canvas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-xs">Size</Label>
-                <Select value={canvasSize} onValueChange={setCanvasSize}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {canvasSizes.map((size) => (
-                      <SelectItem key={size.value} value={size.value}>
-                        {size.label}
-                      </SelectItem>
+      <div className="pt-20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            {/* Tools Panel */}
+            <div className="lg:col-span-1">
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">Tools</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-3 gap-2">
+                    {tools.map((t) => (
+                      <Button
+                        key={t.id}
+                        variant={tool === t.id ? "default" : "outline"}
+                        size="sm"
+                        className="w-full"
+                        onClick={() => setTool(t.id as any)}
+                      >
+                        <t.icon className="h-4 w-4" />
+                        <span className="sr-only sm:not-sr-only sm:ml-2">{t.label}</span>
+                      </Button>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Show Grid</Label>
-                <Button variant="ghost" size="sm" onClick={() => setShowGrid(!showGrid)}>
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Actions */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Undo2 className="h-4 w-4 mr-2" />
-                Undo
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Redo2 className="h-4 w-4 mr-2" />
-                Redo
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Upload className="h-4 w-4 mr-2" />
-                Import Image
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start text-red-600 hover:text-red-700"
-                onClick={clearCanvas}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear Canvas
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Canvas Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Canvas Toolbar */}
-          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary">{zoom}%</Badge>
-                <Button variant="ghost" size="sm" onClick={() => setZoom(Math.max(25, zoom - 25))}>
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setZoom(Math.min(400, zoom + 25))}>
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setZoom(100)}>
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline">{canvasSize}</Badge>
-                <Badge variant="outline">800 × 600px</Badge>
-              </div>
+              {/* Settings Panel */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Stroke Width</Label>
+                    <Slider
+                      value={strokeWidth}
+                      onValueChange={setStrokeWidth}
+                      min={1}
+                      max={20}
+                      step={1}
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label>Color</Label>
+                    <Input
+                      type="color"
+                      value={strokeColor}
+                      onChange={(e) => setStrokeColor(e.target.value)}
+                      className="mt-2 h-8 w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label>Canvas Size</Label>
+                    <Select value={canvasSize} onValueChange={setCanvasSize}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {canvasSizes.map((size) => (
+                          <SelectItem key={size.value} value={size.value}>
+                            {size.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowGrid(!showGrid)}
+                      className="flex-1"
+                    >
+                      <Grid3X3 className="h-4 w-4 mr-2" />
+                      {showGrid ? "Hide Grid" : "Show Grid"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
 
-          {/* Canvas Container */}
-          <div className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900 p-8">
-            <div className="flex justify-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white rounded-lg shadow-lg"
-                style={{ transform: `scale(${zoom / 100})` }}
-              >
+            {/* Canvas Area */}
+            <div className="lg:col-span-3">
+              <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
                 <canvas
                   ref={canvasRef}
-                  className="border border-gray-300 rounded-lg cursor-crosshair"
-                  onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
+                  className="w-full h-full"
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                 />
-              </motion.div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Sidebar - Layers & Preview */}
-        <div className="w-64 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-4 space-y-6">
-          {/* Layers */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Layers</CardTitle>
-                <Button variant="ghost" size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {layers.map((layer) => (
-                <div
-                  key={layer.id}
-                  className="flex items-center justify-between p-2 rounded border hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                      {layer.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                    </Button>
-                    <span className="text-sm">{layer.name}</span>
+          {/* Handwriting Generator Panel */}
+          {tool === "handwriting" && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg">Handwriting Generator</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Text</Label>
+                    <Textarea
+                      value={handwritingText}
+                      onChange={(e) => setHandwritingText(e.target.value)}
+                      placeholder="Enter text to generate handwriting..."
+                      className="mt-2"
+                    />
                   </div>
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                    <Settings className="h-3 w-3" />
+                  <div>
+                    <Label>Style</Label>
+                    <Slider
+                      value={[handwritingStyle]}
+                      onValueChange={(value) => setHandwritingStyle(value[0])}
+                      min={1}
+                      max={10}
+                      step={1}
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label>Bias</Label>
+                    <Slider
+                      value={[handwritingBias]}
+                      onValueChange={(value) => setHandwritingBias(value[0])}
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      className="mt-2"
+                    />
+                  </div>
+                  <Button
+                    onClick={generateHandwriting}
+                    disabled={handwritingLoading}
+                    className="w-full"
+                  >
+                    {handwritingLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      "Generate Handwriting"
+                    )}
                   </Button>
+                  {handwritingStatus && (
+                    <p className={`text-sm ${handwritingStatus.isError ? "text-red-500" : "text-green-500"}`}>
+                      {handwritingStatus.message}
+                    </p>
+                  )}
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* SVG Preview */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">SVG Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded border flex items-center justify-center">
-                <div className="text-xs text-gray-500">SVG preview will appear here</div>
-              </div>
-              <div className="mt-2 text-xs text-gray-500">
-                <div>Elements: 0</div>
-                <div>File size: ~0 KB</div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Text to Handwriting */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Text to Handwriting</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Input placeholder="Type text here..." className="text-sm" />
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select font style" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="casual">Casual</SelectItem>
-                  <SelectItem value="formal">Formal</SelectItem>
-                  <SelectItem value="cursive">Cursive</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button size="sm" className="w-full">
-                Generate Handwriting
-              </Button>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
-
-      {tool === "handwriting" && (
-        <div className="border-t p-4">
-          <h3 className="text-lg font-medium mb-4">Handwriting Generator</h3>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="handwriting-text" className="text-sm font-medium">
-                Enter Text:
-              </label>
-              <Textarea
-                id="handwriting-text"
-                value={handwritingText}
-                onChange={(e) => setHandwritingText(e.target.value)}
-                placeholder="Type or paste your text here..."
-                rows={4}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">
-                  Style (1-10): {handwritingStyle}
-                </label>
-                <Slider
-                  value={[handwritingStyle]}
-                  onValueChange={(value) => setHandwritingStyle(value[0])}
-                  min={1}
-                  max={10}
-                  step={1}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  Bias (0.1-1.0): {handwritingBias}
-                </label>
-                <Slider
-                  value={[handwritingBias]}
-                  onValueChange={(value) => setHandwritingBias(value[0])}
-                  min={0.1}
-                  max={1.0}
-                  step={0.05}
-                />
-              </div>
-            </div>
-            <div className="flex justify-center">
-              <Button
-                onClick={generateHandwriting}
-                disabled={handwritingLoading}
-              >
-                {handwritingLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Handwriting"
-                )}
-              </Button>
-            </div>
-            {handwritingStatus && (
-              <div
-                className={`p-3 rounded-md ${
-                  handwritingStatus.isError
-                    ? "bg-red-100 text-red-700"
-                    : "bg-green-100 text-green-700"
-                }`}
-              >
-                {handwritingStatus.message}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
