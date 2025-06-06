@@ -79,14 +79,14 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
       {/* Header */}
       <header className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
             <PenTool className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              HandwriteSVG
-            </span>
-          </div>
+                  HandwriteSVG
+                </span>
+              </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <ThemeToggle />
+              <ThemeToggle />
             <Button variant="ghost" size="sm" className="sm:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
               <Menu className="h-5 w-5" />
             </Button>
@@ -94,7 +94,7 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
               <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full sm:w-auto">
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
-              </Button>
+                  </Button>
             </div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
 
       <div className="pt-20">
         <div className="container mx-auto px-4 py-8">
-          {/* Welcome Section */}
+        {/* Welcome Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -162,21 +162,21 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
               <h2 className="text-xl sm:text-2xl font-bold">Your Projects</h2>
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
+              <Input
                   type="text"
-                  placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
-                />
-              </div>
-            </div>
+              />
+          </div>
+        </div>
 
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-gray-600 dark:text-gray-300">Loading projects...</p>
-              </div>
+                    </div>
             ) : projects.length === 0 ? (
               <Card>
                 <CardContent className="py-8 sm:py-12 text-center">
@@ -198,9 +198,9 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base sm:text-lg">{project.name}</CardTitle>
-                        <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs">
                           {new Date(project.createdAt).toLocaleDateString()}
-                        </Badge>
+                            </Badge>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -234,8 +234,8 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+              ))}
+            </div>
             )}
           </div>
 
@@ -243,17 +243,17 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
           {recentProjects.length > 0 && (
             <div>
               <h2 className="text-xl sm:text-2xl font-bold mb-4">Recent Activity</h2>
-              <Card>
+            <Card>
                 <CardContent className="p-4 sm:p-6">
-                  <div className="space-y-4">
+                <div className="space-y-4">
                     {recentProjects.map((project) => (
                       <div
-                        key={project.id}
+                      key={project.id}
                         className="flex items-center justify-between py-2"
-                      >
+                    >
                         <div className="flex items-center space-x-3">
                           <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                          <div>
+                        <div>
                             <p className="text-sm sm:text-base font-medium">{project.name}</p>
                             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                               Last edited: {new Date(project.updatedAt).toLocaleDateString()}
@@ -268,10 +268,10 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
                           <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
             </div>
           )}
         </div>
