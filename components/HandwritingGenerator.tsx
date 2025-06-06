@@ -11,8 +11,11 @@ const RENDER_URL = 'https://handwriting-api-j4gv.onrender.com';
 
 export function HandwritingGenerator() {
     const [text, setText] = useState('');
-    const [style, setStyle] = useState(9);
+    const [style, setStyle] = useState('9');
     const [bias, setBias] = useState(0.75);
+    const [line_spacing, setLineSpacing] = useState(0.75);
+    const [text_align, setTextAlignment] = useState('left');
+    const [font_size, setFontSize] = useState(1.0);
     const [loading, setLoading] = useState(false);
     const [svgContent, setSvgContent] = useState('');
     const [status, setStatus] = useState<{ message: string; isError: boolean } | null>(null);
@@ -36,7 +39,10 @@ export function HandwritingGenerator() {
                 body: JSON.stringify({
                     text,
                     style,
-                    bias
+                    bias,
+                    line_spacing,
+                    text_align,
+                    font_size
                 })
             });
 
@@ -100,8 +106,8 @@ export function HandwritingGenerator() {
                                     Style (1-10): {style}
                                 </label>
                                 <Slider
-                                    value={[style]}
-                                    onValueChange={(value) => setStyle(value[0])}
+                                    value={[parseInt(style)]}
+                                    onValueChange={(value) => setStyle(value[0].toString())}
                                     min={1}
                                     max={10}
                                     step={1}
@@ -118,6 +124,44 @@ export function HandwritingGenerator() {
                                     max={1.0}
                                     step={0.05}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Line Spacing (cm): {line_spacing}
+                                </label>
+                                <Slider
+                                    value={[line_spacing]}
+                                    onValueChange={(value) => setLineSpacing(value[0])}
+                                    min={0.5}
+                                    max={2.0}
+                                    step={0.05}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Font Size (px): {font_size}
+                                </label>
+                                <Slider
+                                    value={[font_size]}
+                                    onValueChange={(value) => setFontSize(value[0])}
+                                    min={0.5}
+                                    max={2.0}
+                                    step={0.1}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Text Alignment
+                                </label>
+                                <select
+                                    value={text_align}
+                                    onChange={(e) => setTextAlignment(e.target.value)}
+                                    className="w-full p-2 border rounded-md"
+                                >
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
                             </div>
                         </div>
 
