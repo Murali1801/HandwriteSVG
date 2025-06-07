@@ -21,10 +21,12 @@ import {
   Sparkles,
   ArrowRight,
   Menu,
+  User,
 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useAuth } from "@/lib/auth-context"
 import { projectService } from "@/lib/firestore"
+import Link from "next/link"
 
 interface DashboardProps {
   user: any
@@ -91,6 +93,18 @@ export function Dashboard({ user, onCreateNew, onEditProject, onLogout, onOpenGe
               <Menu className="h-5 w-5" />
             </Button>
             <div className={`${isMobileMenuOpen ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row absolute sm:relative top-16 sm:top-0 right-4 sm:right-0 bg-white dark:bg-gray-900 sm:bg-transparent p-4 sm:p-0 rounded-lg shadow-lg sm:shadow-none border sm:border-0`}>
+              <Link href="/profile" passHref>
+                <Button variant="ghost" size="sm" className="w-full sm:w-auto">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
+              </Link>
+              <Link href="/settings" passHref>
+                <Button variant="ghost" size="sm" className="w-full sm:w-auto">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
+              </Link>
               <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full sm:w-auto">
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
